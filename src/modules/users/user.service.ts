@@ -1,11 +1,12 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from 'src/shared/models';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import * as bcrypt from 'bcrypt';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
 
 @Injectable()
 export class UserService {
@@ -41,19 +42,33 @@ export class UserService {
   }
 
   async findOne(id: string): Promise<User> {
-    return this.userModel.findByPk(id);
+    const user = await this.userModel.findByPk(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
   }
 
   async findOneByEmail(email: string): Promise<User> {
-    return this.userModel.findOne({ where: { email } });
+    const user = await this.userModel.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+    return user;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    await this.userModel.update(updateUserDto, { where: { id } });
+    const user = await this.userModel.update(updateUserDto, { where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
     return this.userModel.findByPk(id);
   }
 
   async remove(id: string): Promise<void> {
-    await this.userModel.destroy({ where: { id } });
+    const user = await this.userModel.destroy({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
   }
 }

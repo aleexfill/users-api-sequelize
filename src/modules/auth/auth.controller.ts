@@ -46,7 +46,6 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Post('login')
-  @Post('login')
   async login(@Body() loginUserDto: { email: string; password: string }) {
     try {
       const result = await this.authService.login(loginUserDto);

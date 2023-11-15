@@ -2,7 +2,7 @@ import {
   Controller,
   Get,
   Post,
-  Put,
+  Patch,
   Delete,
   Param,
   Body,
@@ -51,7 +51,7 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiOperation({ summary: 'Update user', description: 'Update a user by ID' })
   @ApiResponse({ type: UpdateUserDto })
   @ApiOkResponse({ description: 'Successfully updated user' })
