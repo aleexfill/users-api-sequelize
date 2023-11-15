@@ -34,8 +34,9 @@ export class AuthController {
   @ApiBadRequestResponse({ description: 'Invalid registration data' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Post('register')
-  register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  async register(@Body() createUserDto: CreateUserDto) {
+    const user = await this.authService.register(createUserDto);
+    return user;
   }
 
   @ApiOperation({
@@ -71,10 +72,14 @@ export class AuthController {
   @ApiBadRequestResponse({ description: 'Invalid request data' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Post('change-password')
-  changePassword(
+  async changePassword(
     @Request() req: any,
     @Body('newPassword') newPassword: string,
   ) {
-    return this.authService.changePassword(req.user.userId, newPassword);
+    const pass = await this.authService.changePassword(
+      req.user.userId,
+      newPassword,
+    );
+    return pass;
   }
 }

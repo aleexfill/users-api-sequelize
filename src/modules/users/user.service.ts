@@ -37,7 +37,6 @@ export class UserService {
     if (!role) {
       throw new NotFoundException('User role not found');
     }
-    console.log(role);
 
     const hashedPassword = await bcrypt.hash(
       createUserDto.password,
@@ -53,7 +52,8 @@ export class UserService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.userModel.findAll();
+    const users = await this.userModel.findAll();
+    return users;
   }
 
   async findOne(id: string): Promise<User> {
