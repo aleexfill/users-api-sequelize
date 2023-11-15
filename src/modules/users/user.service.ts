@@ -4,9 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from 'src/shared/models';
-import { CreateUserDto, UpdateUserDto } from './dto';
 import * as bcrypt from 'bcrypt';
+import { Role, User } from 'src/shared/models';
+import { CreateUserDto, UpdateUserDto } from './dto';
+import { UserRole } from 'src/shared/enums/user';
 
 @Injectable()
 export class UserService {
@@ -17,6 +18,9 @@ export class UserService {
   constructor(
     @InjectModel(User)
     private readonly userModel: typeof User,
+
+    @InjectModel(Role)
+    private readonly roleModel: typeof Role,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -27,10 +31,21 @@ export class UserService {
       throw new ConflictException('Email is already taken');
     }
 
+    const role = await this.roleModel.findOne({
+      where: { role: UserRole.USER },
+    });
+    if (!role) {
+      throw new NotFoundException('User role not found');
+    }
+    console.log(role);
+
     const hashedPassword = await bcrypt.hash(
       createUserDto.password,
       this.bcryptSaltRounds,
     );
+
+    createUserDto.roleId = role.roleId;
+
     return this.userModel.create({
       ...createUserDto,
       password: hashedPassword,

@@ -6,8 +6,11 @@ import {
   PrimaryKey,
   Default,
   IsUUID,
+  ForeignKey,
+  BelongsTo,
 } from 'sequelize-typescript';
 import { v4 as uuidv4 } from 'uuid';
+import { Role } from './role.model';
 
 @Table
 export class User extends Model<User> {
@@ -28,4 +31,11 @@ export class User extends Model<User> {
 
   @Column(DataType.STRING)
   password: string;
+
+  @ForeignKey(() => Role)
+  @Column(DataType.UUID)
+  roleId: string;
+
+  @BelongsTo(() => Role)
+  role: Role;
 }
