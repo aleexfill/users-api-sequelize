@@ -3,11 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcrypt';
-import { Role, User } from 'src/shared/models';
+import { User } from 'src/shared/models';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { UserRole } from 'src/shared/enums/user';
+import { RoleRepository, UserRepository } from 'src/shared/respositories';
 
 @Injectable()
 export class UserService {
@@ -16,27 +16,19 @@ export class UserService {
   );
 
   constructor(
-    @InjectModel(User)
-    private readonly userModel: typeof User,
-
-    @InjectModel(Role)
-    private readonly roleModel: typeof Role,
+    private readonly userRepository: UserRepository,
+    private readonly roleRepository: RoleRepository,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser = await this.userModel.findOne({
-      where: { email: createUserDto.email },
-    });
+    const existingUser = await this.userRepository.findOneByEmail(
+      createUserDto.email,
+    );
     if (existingUser) {
       throw new ConflictException('Email is already taken');
     }
 
-    const role = await this.roleModel.findOne({
-      where: { role: UserRole.USER },
-    });
-    if (!role) {
-      throw new NotFoundException('User role not found');
-    }
+    const role = await this.roleRepository.findOneByRole(UserRole.USER);
 
     const hashedPassword = await bcrypt.hash(
       createUserDto.password,
@@ -45,19 +37,18 @@ export class UserService {
 
     createUserDto.roleId = role.roleId;
 
-    return this.userModel.create({
+    return this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
     });
   }
 
   async findAll(): Promise<User[]> {
-    const users = await this.userModel.findAll();
-    return users;
+    return this.userRepository.findAll();
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.userModel.findByPk(id);
+    const user = await this.userRepository.findOne(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -65,7 +56,7 @@ export class UserService {
   }
 
   async findOneByEmail(email: string): Promise<User> {
-    const user = await this.userModel.findOne({ where: { email } });
+    const user = await this.userRepository.findOneByEmail(email);
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
@@ -73,17 +64,14 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userModel.update(updateUserDto, { where: { id } });
+    const user = await this.userRepository.update(id, updateUserDto);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    return this.userModel.findByPk(id);
+    return user;
   }
 
   async remove(id: string): Promise<void> {
-    const user = await this.userModel.destroy({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
+    await this.userRepository.remove(id);
   }
 }

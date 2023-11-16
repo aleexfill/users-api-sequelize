@@ -9,9 +9,9 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto';
-import { JwtAuthGuard } from '../jwt/jwt-auth.guard';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
@@ -19,6 +19,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/shared/guards';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -33,6 +34,7 @@ export class AuthController {
   @ApiOkResponse({ description: 'Successfully registered user' })
   @ApiBadRequestResponse({ description: 'Invalid registration data' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @ApiBearerAuth()
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
     const user = await this.authService.register(createUserDto);
@@ -46,6 +48,7 @@ export class AuthController {
   @ApiOkResponse({ description: 'Successfully logged in user' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @ApiBearerAuth()
   @Post('login')
   async login(@Body() loginUserDto: { email: string; password: string }) {
     try {
@@ -71,6 +74,7 @@ export class AuthController {
   @ApiOkResponse({ description: 'Successfully changed password' })
   @ApiBadRequestResponse({ description: 'Invalid request data' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @ApiBearerAuth()
   @Post('change-password')
   async changePassword(
     @Request() req: any,
