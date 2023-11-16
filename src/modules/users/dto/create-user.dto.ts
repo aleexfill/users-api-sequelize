@@ -28,4 +28,6 @@ export class CreateUserDto {
     message: 'Password must contain at least one uppercase letter',
   })
   password: string;
+
+  roleId: string;
 }

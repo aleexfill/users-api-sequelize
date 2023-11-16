@@ -5,12 +5,12 @@ import * as dotenv from 'dotenv';
 import { UserModule } from '../users/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from '../jwt/jwt-auth.guard';
 import { JwtStrategy } from '../jwt/jwt.strategy';
+import { JwtAuthGuard, RolesGuard } from 'src/shared/guards';
 
 dotenv.config();
 
-const providers = [AuthService, JwtAuthGuard, JwtStrategy];
+const providers = [AuthService, JwtAuthGuard, JwtStrategy, RolesGuard];
 
 @Module({
   imports: [

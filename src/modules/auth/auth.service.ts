@@ -1,12 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../users/user.service';
 import { User } from 'src/shared/models';
 import { CreateUserDto } from '../users/dto';
 import * as bcrypt from 'bcrypt';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
 
 @Injectable()
 export class AuthService {
@@ -28,19 +29,28 @@ export class AuthService {
     password: string;
   }): Promise<{ accessToken: string }> {
     const user = await this.userService.findOneByEmail(userDto.email);
-    if (user && (await bcrypt.compare(userDto.password, user.password))) {
-      const payload = { sub: user.id };
-      return {
-        accessToken: this.jwtService.sign(payload),
-      };
+    if (!user) {
+      throw new NotFoundException(`User with email ${userDto.email} not found`);
     }
 
-    return null;
+    if (!(await bcrypt.compare(userDto.password, user.password))) {
+      throw new BadRequestException('Invalid credentials');
+    }
+
+    const payload = { sub: user.id };
+    return {
+      accessToken: this.jwtService.sign(payload),
+    };
   }
 
   async changePassword(userId: string, newPassword: string): Promise<void> {
     if (!userId) {
       throw new BadRequestException('User ID is missing');
+    }
+
+    const user = await this.userService.findOne(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
     const hashedPassword = await bcrypt.hash(
