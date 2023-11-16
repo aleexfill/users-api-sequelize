@@ -64,11 +64,15 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userRepository.update(id, updateUserDto);
+    const user = await this.userRepository.findOne(id);
+
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    return user;
+
+    await this.userRepository.update(id, updateUserDto);
+
+    return this.userRepository.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
