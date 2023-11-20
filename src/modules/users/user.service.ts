@@ -94,6 +94,20 @@ export class UserService {
   }
 
   async remove(id: string): Promise<void> {
+    const user = await this.userRepository.findOne(id);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    const profile = await this.profileRepository.findOne(user.id);
+
+    if (!profile) {
+      throw new NotFoundException(`Profile not found for user with ID ${id}`);
+    }
+
+    await this.profileRepository.remove({ where: { userId: user.id } });
+
     await this.userRepository.remove(id);
   }
 }
