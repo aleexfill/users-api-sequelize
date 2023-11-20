@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Role } from '../models';
-import { UserRole } from '../enums/user';
+import { UserRole } from '../enums';
 
 @Injectable()
 export class RoleRepository {

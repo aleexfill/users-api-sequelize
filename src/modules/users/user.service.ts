@@ -6,8 +6,12 @@ import {
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/shared/models';
 import { CreateUserDto, UpdateUserDto } from './dto';
-import { UserRole } from 'src/shared/enums/user';
-import { RoleRepository, UserRepository } from 'src/shared/respositories';
+import { UserRole } from 'src/shared/enums';
+import {
+  ProfileRepository,
+  RoleRepository,
+  UserRepository,
+} from 'src/shared/respositories';
 
 @Injectable()
 export class UserService {
@@ -18,6 +22,7 @@ export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly roleRepository: RoleRepository,
+    private readonly profileRepository: ProfileRepository,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -35,12 +40,17 @@ export class UserService {
       this.bcryptSaltRounds,
     );
 
-    createUserDto.roleId = role.roleId;
-
-    return this.userRepository.create({
+    const user = await this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
+      roleId: role.roleId,
     });
+
+    const profile = await this.profileRepository.create({
+      userId: user.id,
+    });
+
+    return user;
   }
 
   async findAll(): Promise<User[]> {
@@ -71,6 +81,14 @@ export class UserService {
     }
 
     await this.userRepository.update(id, updateUserDto);
+
+    const profile = await this.profileRepository.findOne(id);
+
+    if (!profile) {
+      throw new NotFoundException(`Profile not found for user with ID ${id}`);
+    }
+
+    await this.profileRepository.update(profile.id, updateUserDto);
 
     return this.userRepository.findOne(id);
   }
