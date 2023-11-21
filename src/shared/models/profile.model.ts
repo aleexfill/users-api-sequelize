@@ -8,10 +8,12 @@ import {
   IsUUID,
   ForeignKey,
   BelongsTo,
+  HasMany,
 } from 'sequelize-typescript';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from './user.model';
 import { Gender } from '../enums';
+import { Image } from './image.model';
 
 @Table
 export class Profile extends Model<Profile> {
@@ -42,6 +44,16 @@ export class Profile extends Model<Profile> {
 
   @BelongsTo(() => User)
   user: User;
+
+  @ForeignKey(() => Image)
+  @Column(DataType.UUID)
+  avatarId: string;
+
+  @BelongsTo(() => Image)
+  avatar: Image;
+
+  @HasMany(() => Image)
+  images: Image[];
 
   @Column(DataType.DATE)
   createdAt: Date;

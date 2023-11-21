@@ -8,10 +8,13 @@ import { User } from 'src/shared/models';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { UserRole } from 'src/shared/enums';
 import {
+  ImageRepository,
   ProfileRepository,
   RoleRepository,
   UserRepository,
 } from 'src/shared/respositories';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class UserService {
@@ -23,6 +26,7 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly roleRepository: RoleRepository,
     private readonly profileRepository: ProfileRepository,
+    private readonly imageRepository: ImageRepository,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -73,7 +77,11 @@ export class UserService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    avatar: Express.Multer.File,
+  ): Promise<User> {
     const user = await this.userRepository.findOne(id);
 
     if (!user) {
@@ -89,6 +97,33 @@ export class UserService {
     }
 
     await this.profileRepository.update(profile.id, updateUserDto);
+
+    if (avatar) {
+      const imagePath = path.join(
+        process.cwd(),
+        'src',
+        'uploads',
+        avatar.originalname,
+      );
+      console.log('Image path', imagePath);
+
+      const image = await this.imageRepository.create({
+        url: imagePath,
+        profileId: profile.id,
+      });
+
+      console.log('Image record created:', image);
+
+      try {
+        await fs.promises.writeFile(imagePath, avatar.buffer);
+        console.log('File saved successfully.');
+      } catch (error) {
+        console.error('Error saving file:', error);
+        throw error;
+      }
+
+      await this.profileRepository.update(profile.id, { avatarId: image.id });
+    }
 
     return this.userRepository.findOne(id);
   }
