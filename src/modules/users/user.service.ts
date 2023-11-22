@@ -3,18 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import { User } from 'src/shared/models';
-import { CreateUserDto, UpdateUserDto } from './dto';
+import { CreateUserDto, UpdateUserDto } from './dto/request';
 import { UserRole } from 'src/shared/enums';
-import {
-  ImageRepository,
-  ProfileRepository,
-  RoleRepository,
-  UserRepository,
-} from 'src/shared/respositories';
-import * as path from 'path';
-import * as fs from 'fs';
+import { RoleRepository, UserRepository } from 'src/shared/respositories';
+import { ProfileService } from '../profile/profile.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -25,8 +19,7 @@ export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly roleRepository: RoleRepository,
-    private readonly profileRepository: ProfileRepository,
-    private readonly imageRepository: ImageRepository,
+    private readonly profileService: ProfileService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -50,9 +43,7 @@ export class UserService {
       roleId: role.roleId,
     });
 
-    const profile = await this.profileRepository.create({
-      userId: user.id,
-    });
+    await this.profileService.createProfile(user.id);
 
     return user;
   }
@@ -90,40 +81,7 @@ export class UserService {
 
     await this.userRepository.update(id, updateUserDto);
 
-    const profile = await this.profileRepository.findOne(id);
-
-    if (!profile) {
-      throw new NotFoundException(`Profile not found for user with ID ${id}`);
-    }
-
-    await this.profileRepository.update(profile.id, updateUserDto);
-
-    if (avatar) {
-      const imagePath = path.join(
-        process.cwd(),
-        'src',
-        'uploads',
-        avatar.originalname,
-      );
-      console.log('Image path', imagePath);
-
-      const image = await this.imageRepository.create({
-        url: imagePath,
-        profileId: profile.id,
-      });
-
-      console.log('Image record created:', image);
-
-      try {
-        await fs.promises.writeFile(imagePath, avatar.buffer);
-        console.log('File saved successfully.');
-      } catch (error) {
-        console.error('Error saving file:', error);
-        throw error;
-      }
-
-      await this.profileRepository.update(profile.id, { avatarId: image.id });
-    }
+    await this.profileService.updateProfile(id, updateUserDto, avatar);
 
     return this.userRepository.findOne(id);
   }
@@ -135,13 +93,7 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const profile = await this.profileRepository.findOne(user.id);
-
-    if (!profile) {
-      throw new NotFoundException(`Profile not found for user with ID ${id}`);
-    }
-
-    await this.profileRepository.remove({ where: { userId: user.id } });
+    await this.profileService.removeProfile(id);
 
     await this.userRepository.remove(id);
   }

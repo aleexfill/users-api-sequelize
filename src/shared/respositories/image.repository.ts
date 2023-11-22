@@ -21,8 +21,4 @@ export class ImageRepository {
     await this.imageModel.update(profileData, { where: { id } });
     return this.imageModel.findByPk(id);
   }
-
-  async remove(id: string): Promise<void> {
-    await this.imageModel.destroy({ where: { id } });
-  }
 }

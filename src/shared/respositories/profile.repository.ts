@@ -21,8 +21,4 @@ export class ProfileRepository {
   async findOne(userId: string): Promise<Profile> {
     return this.profileModel.findOne({ where: { userId } });
   }
-
-  async remove(where: any): Promise<void> {
-    await this.profileModel.destroy(where);
-  }
 }

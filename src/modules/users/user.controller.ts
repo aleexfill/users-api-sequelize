@@ -11,8 +11,6 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto } from './dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -23,7 +21,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Multer } from 'multer';
+import { UserService } from './user.service';
+import { CreateUserDto, UpdateUserDto } from './dto/request';
 
 @ApiTags('Users')
 @Controller('users')

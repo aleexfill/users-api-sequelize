@@ -42,7 +42,9 @@ export class Profile extends Model<Profile> {
   @Column(DataType.UUID)
   userId: string;
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, {
+    onDelete: 'CASCADE',
+  })
   user: User;
 
   @ForeignKey(() => Image)

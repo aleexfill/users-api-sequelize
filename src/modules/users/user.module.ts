@@ -9,6 +9,7 @@ import {
   RoleRepository,
   UserRepository,
 } from 'src/shared/respositories';
+import { ProfileService } from '../profile/profile.service';
 
 @Module({
   imports: [SequelizeModule.forFeature([User, Role, Profile, Image])],
@@ -19,6 +20,7 @@ import {
     RoleRepository,
     ProfileRepository,
     ImageRepository,
+    ProfileService,
   ],
   exports: [UserService, SequelizeModule],
 })

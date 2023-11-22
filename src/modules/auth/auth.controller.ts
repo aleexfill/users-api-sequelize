@@ -7,8 +7,6 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CreateUserDto } from '../users/dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -19,7 +17,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { AuthService } from './auth.service';
 import { JwtAuthGuard } from 'src/shared/guards';
+import { CreateUserDto } from '../users/dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
