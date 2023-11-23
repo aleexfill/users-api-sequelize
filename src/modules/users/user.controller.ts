@@ -14,6 +14,8 @@ import {
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
@@ -70,7 +72,20 @@ export class UserController {
   @ApiBadRequestResponse({ description: 'Incorrect update data.' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiBearerAuth()
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @ApiBody({
+    description: 'User update and avatar',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @Patch(':id')
   async update(
     @Param('id') id: string,

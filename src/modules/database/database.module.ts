@@ -15,8 +15,6 @@ import { Image, Profile, Role, User } from 'src/shared/models';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       models: [Profile, User, Role, Image],
-      autoLoadModels: true,
-      synchronize: true,
     }),
   ],
 })
