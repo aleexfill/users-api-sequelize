@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from '../jwt/jwt.strategy';
 import { JwtAuthGuard, RolesGuard } from 'src/shared/guards';
 import * as dotenv from 'dotenv';
+import { SocketModule } from '../socket/socket.module';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ const providers = [AuthService, JwtAuthGuard, JwtStrategy, RolesGuard];
   imports: [
     UserModule,
     PassportModule,
+    SocketModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },

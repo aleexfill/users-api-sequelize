@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsOptional,
@@ -50,4 +51,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsEnum(Gender)
   gender?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  online?: boolean;
 }

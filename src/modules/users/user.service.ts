@@ -43,7 +43,9 @@ export class UserService {
       roleId: role.roleId,
     });
 
-    await this.profileService.createProfile(user.id);
+    const profile = await this.profileService.createProfile(user.id);
+    user.profileId = profile.id;
+    await user.save();
 
     return user;
   }

@@ -8,6 +8,7 @@ import { UserService } from '../users/user.service';
 import { User } from 'src/shared/models';
 import { CreateUserDto } from '../users/dto';
 import * as bcrypt from 'bcrypt';
+import { SocketService } from '../socket/socket.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly socketService: SocketService,
   ) {}
 
   async register(createUserDto: CreateUserDto): Promise<User> {
@@ -36,6 +38,10 @@ export class AuthService {
     if (!(await bcrypt.compare(userDto.password, user.password))) {
       throw new BadRequestException('Invalid credentials');
     }
+
+    await this.userService.update(user.id, { online: true }, null);
+
+    this.socketService.emitEvent('user-online', { userId: user.id });
 
     const payload = { sub: user.id };
     return {

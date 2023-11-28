@@ -10,10 +10,12 @@ export class ProfileService {
     private readonly imageService: ImageService,
   ) {}
 
-  async createProfile(userId: string): Promise<void> {
-    await this.profileRepository.create({
+  async createProfile(userId: string) {
+    const profile = await this.profileRepository.create({
       userId,
     });
+
+    return profile;
   }
 
   async updateProfile(

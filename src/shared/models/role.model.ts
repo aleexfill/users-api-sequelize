@@ -20,7 +20,7 @@ export class Role extends Model<Role> {
   @Column(DataType.UUID)
   roleId: string;
 
-  @Column(DataType.STRING)
+  @Column(DataType.ENUM(...Object.values(UserRole)))
   role: UserRole;
 
   @HasMany(() => User)

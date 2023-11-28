@@ -5,18 +5,20 @@ import * as path from 'path';
 import { promisify } from 'util';
 
 const unlinkAsync = promisify(fs.unlink);
+const mkdirAsync = promisify(fs.mkdir);
 
 @Injectable()
 export class ImageService {
   constructor(private readonly imageRepository: ImageRepository) {}
 
   async createImage(profileId: string, avatar: Express.Multer.File) {
-    const imagePath = path.join(
-      process.cwd(),
-      'src',
-      'uploads',
-      avatar.originalname,
-    );
+    const uploadsDir = path.join(process.cwd(), 'src', 'uploads');
+
+    if (!fs.existsSync(uploadsDir)) {
+      await mkdirAsync(uploadsDir, { recursive: true });
+    }
+
+    const imagePath = path.join(uploadsDir, avatar.originalname);
 
     const image = await this.imageRepository.create({
       url: imagePath,
