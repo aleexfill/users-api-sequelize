@@ -5,7 +5,8 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { RoleRepository, UserRepository } from 'src/shared/respositories';
 import { ProfileModule } from '../profile/profile.module';
-import { ImageModule } from '../image/image.module';
+
+const providers = [UserService, UserRepository, RoleRepository];
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { ImageModule } from '../image/image.module';
     ProfileModule,
   ],
   controllers: [UserController],
-  providers: [UserService, UserRepository, RoleRepository],
+  providers: [...providers],
   exports: [UserService, SequelizeModule],
 })
 export class UserModule {}

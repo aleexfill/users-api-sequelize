@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,6 +10,8 @@ import { User } from 'src/shared/models';
 import { CreateUserDto } from '../users/dto';
 import * as bcrypt from 'bcrypt';
 import { SocketService } from '../socket/socket.service';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +23,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly socketService: SocketService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async register(createUserDto: CreateUserDto): Promise<User> {
@@ -30,9 +34,24 @@ export class AuthService {
     email: string;
     password: string;
   }): Promise<{ accessToken: string }> {
-    const user = await this.userService.findOneByEmail(userDto.email);
-    if (!user) {
-      throw new NotFoundException(`User with email ${userDto.email} not found`);
+    const cachedUser = await this.cacheManager.get<User>(
+      `user_email_${userDto.email}`,
+    );
+
+    let user: User;
+
+    if (cachedUser) {
+      user = cachedUser;
+    } else {
+      user = await this.userService.findOneByEmail(userDto.email);
+
+      if (!user) {
+        throw new NotFoundException(
+          `User with email ${userDto.email} not found`,
+        );
+      }
+
+      await this.cacheManager.set(`user_email_${userDto.email}`, user, 60);
     }
 
     if (!(await bcrypt.compare(userDto.password, user.password))) {
@@ -50,6 +69,9 @@ export class AuthService {
   }
 
   async changePassword(userId: string, newPassword: string): Promise<void> {
+    await this.cacheManager.del(`user_${userId}`);
+    await this.cacheManager.del('all_users');
+
     if (!userId) {
       throw new BadRequestException('User ID is missing');
     }

@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,6 +10,8 @@ import { UserRole } from 'src/shared/enums';
 import { RoleRepository, UserRepository } from 'src/shared/respositories';
 import { ProfileService } from '../profile/profile.service';
 import * as bcrypt from 'bcrypt';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class UserService {
@@ -20,6 +23,7 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly roleRepository: RoleRepository,
     private readonly profileService: ProfileService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -47,18 +51,40 @@ export class UserService {
     user.profileId = profile.id;
     await user.save();
 
+    await this.cacheManager.del('all_users');
+
     return user;
   }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.findAll();
+    const cachedUsers = await this.cacheManager.get<User[]>('all_users');
+
+    if (cachedUsers) {
+      return cachedUsers;
+    }
+
+    const users = this.userRepository.findAll();
+
+    await this.cacheManager.set('all_users', users, 60);
+
+    return users;
   }
 
   async findOne(id: string): Promise<User> {
+    const cachedUser = await this.cacheManager.get<User>(`user_${id}`);
+
+    if (cachedUser) {
+      return cachedUser;
+    }
+
     const user = await this.userRepository.findOne(id);
+
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+
+    await this.cacheManager.set(`user_${id}`, user, 60);
+
     return user;
   }
 
@@ -84,6 +110,9 @@ export class UserService {
     await this.userRepository.update(id, updateUserDto);
 
     await this.profileService.updateProfile(id, updateUserDto, avatar);
+
+    await this.cacheManager.del(`user_${id}`);
+    await this.cacheManager.del('all_users');
 
     return this.userRepository.findOne(id);
   }

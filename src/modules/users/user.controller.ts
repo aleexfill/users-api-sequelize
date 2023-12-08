@@ -31,6 +31,10 @@ import { CreateUserDto, UpdateUserDto } from './dto/request';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiOperation({
+    summary: 'Create user',
+    description: 'Create a new user',
+  })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ description: 'Registration' })
   @ApiResponse({ type: CreateUserDto })
@@ -76,15 +80,7 @@ export class UserController {
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiBody({
     description: 'User update and avatar',
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
+    type: UpdateUserDto,
   })
   @Patch(':id')
   async update(
