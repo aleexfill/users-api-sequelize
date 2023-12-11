@@ -20,6 +20,7 @@ import {
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from 'src/shared/guards';
 import { CreateUserDto } from '../users/dto';
+import { LoginUserDto } from './dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -45,12 +46,13 @@ export class AuthController {
     summary: 'User login',
     description: 'Authenticate and log in a user',
   })
+  @ApiResponse({ type: LoginUserDto })
   @ApiOkResponse({ description: 'Successfully logged in user' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiBearerAuth()
   @Post('login')
-  async login(@Body() loginUserDto: { email: string; password: string }) {
+  async login(@Body() loginUserDto: LoginUserDto) {
     try {
       const result = await this.authService.login(loginUserDto);
       if (!result) {

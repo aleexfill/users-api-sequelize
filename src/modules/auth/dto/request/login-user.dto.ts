@@ -7,15 +7,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class CreateUserDto {
-  @IsNotEmpty()
-  @IsString()
-  firstName: string;
-
-  @IsNotEmpty()
-  @IsString()
-  lastName: string;
-
+export class LoginUserDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
@@ -25,9 +17,7 @@ export class CreateUserDto {
   @MinLength(8)
   @MaxLength(30)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z]).*$/, {
-    message: 'Password must contain at least one uppercase letter',
+    message: 'Invalid credentials',
   })
   password: string;
-
-  roleId: string;
 }

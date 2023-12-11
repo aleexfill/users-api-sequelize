@@ -1,23 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ImageRepository, ProfileRepository } from 'src/shared/respositories';
+import { ProfileRepository } from 'src/shared/respositories';
 import { UpdateUserDto } from '../users/dto';
-import * as fs from 'fs';
-import * as path from 'path';
-import { promisify } from 'util';
-
-const unlinkAsync = promisify(fs.unlink);
+import { ImageService } from '../image/image.service';
 
 @Injectable()
 export class ProfileService {
   constructor(
     private readonly profileRepository: ProfileRepository,
-    private readonly imageRepository: ImageRepository,
+    private readonly imageService: ImageService,
   ) {}
 
-  async createProfile(userId: string): Promise<void> {
-    await this.profileRepository.create({
+  async createProfile(userId: string) {
+    const profile = await this.profileRepository.create({
       userId,
     });
+
+    return profile;
   }
 
   async updateProfile(
@@ -36,29 +34,7 @@ export class ProfileService {
     await this.profileRepository.update(profile.id, updateUserDto);
 
     if (avatar) {
-      const imagePath = path.join(
-        process.cwd(),
-        'src',
-        'uploads',
-        avatar.originalname,
-      );
-      console.log('Image path', imagePath);
-
-      const image = await this.imageRepository.create({
-        url: imagePath,
-        profileId: profile.id,
-      });
-
-      console.log('Image record created:', image);
-
-      try {
-        await fs.promises.writeFile(imagePath, avatar.buffer);
-        console.log('File saved successfully.');
-      } catch (error) {
-        console.error('Error saving file:', error);
-        throw error;
-      }
-
+      const image = await this.imageService.createImage(profile.id, avatar);
       await this.profileRepository.update(profile.id, { avatarId: image.id });
     }
   }
@@ -73,15 +49,7 @@ export class ProfileService {
     }
 
     if (profile.avatarId) {
-      const avatar = await this.imageRepository.findOne(profile.avatarId);
-
-      if (avatar) {
-        try {
-          await unlinkAsync(avatar.url);
-        } catch (error) {
-          throw error;
-        }
-      }
+      await this.imageService.removeImage(profile.avatarId);
     }
   }
 }

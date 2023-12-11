@@ -2,10 +2,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { SocketService } from './modules/socket/socket.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
+  const socketService = app.get(SocketService);
+  socketService.initialize(app.getHttpServer());
 
   const config = new DocumentBuilder()
     .setTitle('REST API')

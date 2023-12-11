@@ -57,6 +57,9 @@ export class Profile extends Model<Profile> {
   @HasMany(() => Image)
   images: Image[];
 
+  @Column(DataType.BOOLEAN)
+  online: boolean;
+
   @Column(DataType.DATE)
   createdAt: Date;
 

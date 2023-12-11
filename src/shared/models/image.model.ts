@@ -27,6 +27,8 @@ export class Image extends Model<Image> {
   @Column(DataType.UUID)
   profileId: string;
 
-  @BelongsTo(() => Profile)
+  @BelongsTo(() => Profile, {
+    onDelete: 'CASCADE',
+  })
   profile: Profile;
 }

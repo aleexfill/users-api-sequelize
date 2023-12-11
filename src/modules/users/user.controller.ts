@@ -14,6 +14,8 @@ import {
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
@@ -29,6 +31,10 @@ import { CreateUserDto, UpdateUserDto } from './dto/request';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiOperation({
+    summary: 'Create user',
+    description: 'Create a new user',
+  })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ description: 'Registration' })
   @ApiResponse({ type: CreateUserDto })
@@ -70,7 +76,12 @@ export class UserController {
   @ApiBadRequestResponse({ description: 'Incorrect update data.' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiBearerAuth()
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @ApiBody({
+    description: 'User update and avatar',
+    type: UpdateUserDto,
+  })
   @Patch(':id')
   async update(
     @Param('id') id: string,

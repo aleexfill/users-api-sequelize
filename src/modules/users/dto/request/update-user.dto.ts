@@ -1,4 +1,6 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsOptional,
@@ -50,4 +52,16 @@ export class UpdateUserDto {
   @IsOptional()
   @IsEnum(Gender)
   gender?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  online?: boolean;
+
+  @ApiPropertyOptional({
+    type: 'string',
+    format: 'binary',
+  })
+  @IsOptional()
+  @IsString()
+  file?: Express.Multer.File;
 }
