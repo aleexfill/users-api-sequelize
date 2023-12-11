@@ -8,9 +8,9 @@ import {
   Body,
   HttpStatus,
   HttpCode,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto } from './dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -20,6 +20,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UserService } from './user.service';
+import { CreateUserDto, UpdateUserDto } from './dto/request';
 
 @ApiTags('Users')
 @Controller('users')
@@ -67,9 +70,14 @@ export class UserController {
   @ApiBadRequestResponse({ description: 'Incorrect update data.' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiBearerAuth()
+  @UseInterceptors(FileInterceptor('avatar'))
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return await this.userService.update(id, updateUserDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() avatar: Express.Multer.File,
+  ) {
+    return await this.userService.update(id, updateUserDto, avatar);
   }
 
   @ApiOperation({ summary: 'Delete user', description: 'Delete a user by ID' })

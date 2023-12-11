@@ -9,7 +9,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { v4 as uuidv4 } from 'uuid';
-import { UserRole } from '../enums/user';
+import { UserRole } from '../enums';
 import { User } from './user.model';
 
 @Table

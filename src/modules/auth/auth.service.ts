@@ -57,6 +57,6 @@ export class AuthService {
       newPassword,
       this.bcryptSaltRounds,
     );
-    await this.userService.update(userId, { password: hashedPassword });
+    await this.userService.update(userId, { password: hashedPassword }, null);
   }
 }

@@ -3,11 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import { User } from 'src/shared/models';
-import { CreateUserDto, UpdateUserDto } from './dto';
-import { UserRole } from 'src/shared/enums/user';
+import { CreateUserDto, UpdateUserDto } from './dto/request';
+import { UserRole } from 'src/shared/enums';
 import { RoleRepository, UserRepository } from 'src/shared/respositories';
+import { ProfileService } from '../profile/profile.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -18,6 +19,7 @@ export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly roleRepository: RoleRepository,
+    private readonly profileService: ProfileService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -35,12 +37,15 @@ export class UserService {
       this.bcryptSaltRounds,
     );
 
-    createUserDto.roleId = role.roleId;
-
-    return this.userRepository.create({
+    const user = await this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
+      roleId: role.roleId,
     });
+
+    await this.profileService.createProfile(user.id);
+
+    return user;
   }
 
   async findAll(): Promise<User[]> {
@@ -63,7 +68,11 @@ export class UserService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    avatar: Express.Multer.File,
+  ): Promise<User> {
     const user = await this.userRepository.findOne(id);
 
     if (!user) {
@@ -72,10 +81,20 @@ export class UserService {
 
     await this.userRepository.update(id, updateUserDto);
 
+    await this.profileService.updateProfile(id, updateUserDto, avatar);
+
     return this.userRepository.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
+    const user = await this.userRepository.findOne(id);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    await this.profileService.removeProfile(id);
+
     await this.userRepository.remove(id);
   }
 }
