@@ -20,7 +20,7 @@ import {
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from 'src/shared/guards';
 import { CreateUserDto } from '../users/dto';
-import { LoginUserDto } from './dto';
+import { ChangePasswordDto, LoginResponseDto, LoginUserDto } from './dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -37,7 +37,7 @@ export class AuthController {
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiBearerAuth()
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
+  async register(@Body() createUserDto: CreateUserDto): Promise<CreateUserDto> {
     const user = await this.authService.register(createUserDto);
     return user;
   }
@@ -52,7 +52,7 @@ export class AuthController {
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiBearerAuth()
   @Post('login')
-  async login(@Body() loginUserDto: LoginUserDto) {
+  async login(@Body() loginUserDto: LoginUserDto): Promise<LoginResponseDto> {
     try {
       const result = await this.authService.login(loginUserDto);
       if (!result) {
@@ -80,12 +80,12 @@ export class AuthController {
   @Post('change-password')
   async changePassword(
     @Request() req: any,
-    @Body('newPassword') newPassword: string,
-  ) {
-    const pass = await this.authService.changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<void> {
+    await this.authService.changePassword(
       req.user.userId,
-      newPassword,
+      changePasswordDto.oldPassword,
+      changePasswordDto.newPassword,
     );
-    return pass;
   }
 }

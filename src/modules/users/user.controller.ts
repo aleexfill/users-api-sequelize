@@ -25,6 +25,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto } from './dto/request';
+import { UserResponseDto } from './dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -43,31 +44,47 @@ export class UserController {
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiBearerAuth()
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto): Promise<CreateUserDto> {
     return await this.userService.create(createUserDto);
   }
 
   @ApiOperation({ summary: 'Get all users', description: 'Retrieve all users' })
-  @ApiOkResponse({ description: 'Successfully found users' })
+  @ApiOkResponse({
+    type: [UserResponseDto],
+    description: 'Successfully found users',
+  })
   @ApiBadRequestResponse({ description: 'Users not found' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiBearerAuth()
   @Get()
-  async findAll() {
-    return await this.userService.findAll();
+  async findAll(): Promise<UserResponseDto[]> {
+    const users = await this.userService.findAll();
+    return users.map(
+      (user) =>
+        new UserResponseDto(user.id, user.firstName, user.lastName, user.email),
+    );
   }
 
   @ApiOperation({
     summary: 'Get user by ID',
     description: 'Retrieve a user by ID',
   })
-  @ApiOkResponse({ description: 'Successfully found user' })
+  @ApiOkResponse({
+    type: UserResponseDto,
+    description: 'Successfully found user',
+  })
   @ApiBadRequestResponse({ description: 'User not found' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @ApiBearerAuth()
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.userService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<UserResponseDto> {
+    const user = await this.userService.findOne(id);
+    return new UserResponseDto(
+      user.id,
+      user.firstName,
+      user.lastName,
+      user.email,
+    );
   }
 
   @ApiOperation({ summary: 'Update user', description: 'Update a user by ID' })
@@ -87,7 +104,7 @@ export class UserController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() avatar: Express.Multer.File,
-  ) {
+  ): Promise<UpdateUserDto> {
     return await this.userService.update(id, updateUserDto, avatar);
   }
 
