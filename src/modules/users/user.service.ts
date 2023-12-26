@@ -9,7 +9,7 @@ import { CreateUserDto, UpdateUserDto } from './dto/request';
 import { UserRole } from 'src/shared/enums';
 import { RoleRepository, UserRepository } from 'src/shared/respositories';
 import { ProfileService } from '../profile/profile.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 

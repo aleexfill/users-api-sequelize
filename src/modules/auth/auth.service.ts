@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../users/user.service';
 import { User } from 'src/shared/models';
 import { CreateUserDto } from '../users/dto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { SocketService } from '../socket/socket.service';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -68,7 +68,11 @@ export class AuthService {
     };
   }
 
-  async changePassword(userId: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<void> {
     await this.cacheManager.del(`user_${userId}`);
     await this.cacheManager.del('all_users');
 
@@ -81,10 +85,15 @@ export class AuthService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
+    if (!(await bcrypt.compare(oldPassword, user.password))) {
+      throw new BadRequestException('Invalid old password');
+    }
+
     const hashedPassword = await bcrypt.hash(
       newPassword,
       this.bcryptSaltRounds,
     );
+
     await this.userService.update(userId, { password: hashedPassword }, null);
   }
 }

@@ -18,7 +18,13 @@ dotenv.config();
     CacheModule.register({
       isGlobal: true,
       ttl: 60000,
-      store: redisStore,
+      store: process.env.REDIS_HOST
+        ? redisStore
+        : {
+            get: () => Promise.resolve(null),
+            set: () => Promise.resolve(null),
+            del: () => Promise.resolve(null),
+          },
       host: process.env.REDIS_HOST,
       port: parseInt(process.env.REDIS_PORT),
     }),

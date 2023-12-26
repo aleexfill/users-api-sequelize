@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsEmail,
@@ -12,19 +12,23 @@ import {
 import { Gender } from 'src/shared/enums';
 
 export class UpdateUserDto {
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   firstName?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   lastName?: string;
 
   @IsOptional()
+  @ApiPropertyOptional()
   @IsEmail()
   email?: string;
 
   @IsOptional()
+  @ApiPropertyOptional()
   @IsString()
   @MinLength(8)
   @MaxLength(30)
@@ -34,21 +38,26 @@ export class UpdateUserDto {
   password?: string;
 
   @IsOptional()
+  @ApiPropertyOptional()
   @IsString()
   phone?: string;
 
   @IsOptional()
+  @ApiPropertyOptional()
   @IsString()
   country?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   city?: string;
 
   @IsOptional()
+  @ApiPropertyOptional()
   @IsString()
   aboutMyself?: string;
 
+  @ApiPropertyOptional({ enum: Gender, enumName: 'Gender' })
   @IsOptional()
   @IsEnum(Gender)
   gender?: string;

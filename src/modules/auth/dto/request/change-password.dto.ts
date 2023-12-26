@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsEmail,
   IsNotEmpty,
   IsString,
   Matches,
@@ -8,11 +7,11 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class LoginUserDto {
+export class ChangePasswordDto {
   @IsNotEmpty()
+  @IsString()
   @ApiProperty()
-  @IsEmail()
-  email: string;
+  oldPassword: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -22,5 +21,5 @@ export class LoginUserDto {
   @Matches(/^(?=.*[a-z])(?=.*[A-Z]).*$/, {
     message: 'Invalid credentials',
   })
-  password: string;
+  newPassword: string;
 }
